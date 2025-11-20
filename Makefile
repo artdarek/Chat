@@ -9,7 +9,11 @@ PYTHONPATH ?= src
 UV ?= uv
 CLIENT_APP ?= client.main:app
 CLIENT_PORT ?= 8001
-CLIENT_URL ?= http://$(HOST):$(CLIENT_PORT)/
+# Use localhost for browser URLs by default (HOST is for binding)
+OPEN_HOST ?= localhost
+CLIENT_URL ?= http://$(OPEN_HOST):$(CLIENT_PORT)/
+# Server host used by the client to call API/WS (query string)
+SERVER_HOST_QS ?= localhost
 
 help:
 	@echo "Available targets:"
@@ -50,9 +54,9 @@ start-client:
 	PYTHONPATH=$(PYTHONPATH) uvicorn $(CLIENT_APP) --host $(HOST) --port $(CLIENT_PORT) --reload
 
 run-client:
-	@echo "Opening demo client at $(CLIENT_URL)?server_host=$(HOST)&server_port=$(PORT)"
+	@echo "Opening demo client at $(CLIENT_URL)?server_host=$(SERVER_HOST_QS)&server_port=$(PORT)"
 	@echo "(Ensure the server is running: make start and client: make start-client)"
-	@$(PY) -c "import sys, webbrowser; webbrowser.open(sys.argv[1])" "$(CLIENT_URL)?server_host=$(HOST)&server_port=$(PORT)"
+	@$(PY) -c "import sys, webbrowser; webbrowser.open(sys.argv[1])" "$(CLIENT_URL)?server_host=$(SERVER_HOST_QS)&server_port=$(PORT)"
 
 compose-up:
 	docker compose up -d --build

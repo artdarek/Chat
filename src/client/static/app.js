@@ -154,6 +154,9 @@ ws.addEventListener('message', (ev) => {
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
+  if (!window.__authUser) {
+    return; // require sign-in to send
+  }
   if (input.value.trim() && ws.readyState === WebSocket.OPEN) {
     ws.send(input.value);
     input.value = '';

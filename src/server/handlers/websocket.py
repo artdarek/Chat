@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone
 from fastapi import WebSocket, WebSocketDisconnect
+from server.auth import db as auth_db
 
 from server.connection import manager
 
@@ -31,7 +32,17 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await manager.broadcast_json({"type": "users", "users": manager.users()})
                 continue
 
-            # Otherwise treat as normal chat text
+            # Otherwise treat as normal chat text - gated by auth
+            authed_user = None
+            try:
+                token = websocket.cookies.get("session_token")
+                if token:
+                    authed_user = auth_db.get_user_by_token(token)
+            except Exception:
+                authed_user = None
+            if not authed_user:
+                # ignore unauthenticated messages
+                continue
             await manager.broadcast_json({
                 "type": "message",
                 "from": manager.user_id(websocket),
